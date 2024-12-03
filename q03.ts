@@ -1,64 +1,107 @@
 class Banco {
-  contas: Conta[]; 
-  clientes: Cliente[]; 
+  contas: Conta[];
+  clientes: Cliente[];
 
   constructor() {
     this.contas = [];
     this.clientes = [];
   }
 
-  inserirConta(conta: Conta): void {
-    this.contas.push(conta);
-  }
-
-  // Adicionar um cliente ao banco
+  // a) 
   inserirCliente(cliente: Cliente): void {
+    const clienteExistente = this.clientes.find(
+      c => c.id === cliente.id || c.cpf === cliente.cpf
+    );
+
+    if (clienteExistente) {
+      console.error("Erro: Cliente com o mesmo ID ou CPF já existe.");
+      return;
+    }
+
     this.clientes.push(cliente);
   }
 
-  consultarConta(numero: string): Conta | null {
-    for (let conta of this.contas) {
-      if (conta.numero === numero) {
-        return conta;
-      }
-    }
-    return null; 
-  }
-
-
+  // b) 
   consultarCliente(cpf: string): Cliente | null {
-    for (let cliente of this.clientes) {
-      if (cliente.cpf === cpf) {
-        return cliente;
-      }
-    }
-    return null; // Cliente não encontrado
+    return this.clientes.find(cliente => cliente.cpf === cpf) || null;
   }
 
-  
-  removerConta(numero: string): void {
-    this.contas = this.contas.filter(conta => conta.numero !== numero);
+  // c) 
+  associarContaCliente(numeroConta: string, cpfCliente: string): void {
+    const cliente = this.consultarCliente(cpfCliente);
+    if (!cliente) {
+      console.error("Erro: Cliente não encontrado.");
+      return;
+    }
+
+    const conta = this.consultarConta(numeroConta);
+    if (!conta) {
+      console.error("Erro: Conta não encontrada.");
+      return;
+    }
+
+    if (conta.cliente.id !== cliente.id) {
+      console.error("Erro: A conta já está associada a outro cliente.");
+      return;
+    }
+
+    if (cliente.contas.some(c => c.numero === numeroConta)) {
+      console.error("Erro: A conta já está associada a este cliente.");
+      return;
+    }
+
+    cliente.adicionarConta(conta);
+    conta.cliente = cliente;
+  }
+
+  // d) 
+  listarContasCliente(cpf: string): Conta[] {
+    const cliente = this.consultarCliente(cpf);
+    if (!cliente) {
+      console.error("Erro: Cliente não encontrado.");
+      return [];
+    }
+
+    return cliente.contas;
+  }
+
+  // e) 
+  totalizarSaldoCliente(cpf: string): number {
+    const contas = this.listarContasCliente(cpf);
+    return contas.reduce((total, conta) => total + conta.saldo, 0);
+  }
+
+  // f) 
+  inserirClienteComValidacao(cliente: Cliente): void {
+    const clienteExistente = this.clientes.find(
+      c => c.id === cliente.id || c.cpf === cliente.cpf
+    );
+
+    if (clienteExistente) {
+      console.error("Erro: Cliente com o mesmo ID ou CPF já existe.");
+      return;
+    }
+
+    this.clientes.push(cliente);
+  }
+
+  // g)
+  inserirConta(conta: Conta): void {
+    const contaExistente = this.contas.find(
+      c => c.id === conta.id || c.numero === conta.numero
+    );
+
+    if (contaExistente) {
+      console.error("Erro: Conta com o mesmo ID ou número já existe.");
+      return;
+    }
+
+    this.contas.push(conta);
   }
 
  
-  removerCliente(cpf: string): void {
-    this.clientes = this.clientes.filter(cliente => cliente.cpf !== cpf);
-  }
-
-
-  listarContas(): void {
-    this.contas.forEach(conta => {
-      console.log(`ID: ${conta.id}, Número: ${conta.numero}, Cliente: ${conta.cliente.nome}, Saldo: R$${conta.saldo}`);
-    });
-  }
-
-
-  listarClientes(): void {
-    this.clientes.forEach(cliente => {
-      console.log(`ID: ${cliente.id}, Nome: ${cliente.nome}, CPF: ${cliente.cpf}, Contas: ${cliente.contas.length}`);
-    });
+  consultarConta(numero: string): Conta | null {
+    return this.contas.find(conta => conta.numero === numero) || null;
   }
 }
-
-
 
